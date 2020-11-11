@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import click
 import logging
+import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 
@@ -14,6 +16,40 @@ def main(input_filepath, output_filepath):
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
+
+    print(input_filepath)
+    process_articles(input_filepath, print_article)
+
+
+def process_articles(articles_file, f):
+    tree = ET.iterparse(articles_file)
+    for event, element in tree:
+        if element.tag == 'article':
+            attrs = element.attrib
+            article_id = attrs['id']
+            # published = attrs['published-at']
+            xml = ET.tostring(element, encoding="utf-8", method="xml").decode()
+            article = dict(
+                id=article_id,
+                xml=xml,
+                # published_at=published,
+                et=element,
+            )
+            f(article)
+            del article['et']
+
+
+def print_article(article):
+    print(article)
+
+
+def write_text(article):
+    soup = BeautifulSoup(xml)
+    print(soup.text) 
+
+
+def save_to_db(article):
+    pass
 
 
 if __name__ == '__main__':
